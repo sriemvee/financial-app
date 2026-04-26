@@ -1,0 +1,26 @@
+.app {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+nav {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
