@@ -5,10 +5,13 @@ import { formatCurrency, formatDate } from '../utils/formatting';
 const Expenses = () => {
   const [expenses, setExpenses] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [expenseSources, setExpenseSources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
+  // Single formData declaration with expense_source_id
   const [formData, setFormData] = useState({
     user_id: 1,
     amount: '',
@@ -16,33 +19,9 @@ const Expenses = () => {
     category_id: '',
     mode: 'cash',
     need_type: 'personal',
+    expense_source_id: '',
     note: '',
   });
-  const [expenseSources, setExpenseSources] = useState([]);
-  useEffect(() => {
-  const fetchSources = async () => {
-    try {
-      const sources = await api.getExpenseSources();
-      setExpenseSources(sources);
-    } catch (err) {
-      console.error('Failed to fetch expense sources:', err);
-    }
-  };
-  fetchSources();
-}, []);
-
-// Add to formData state
-const [formData, setFormData] = useState({
-  user_id: 1,
-  amount: '',
-  date: new Date().toISOString().split('T')[0],
-  category_id: '',
-  mode: 'cash',
-  need_type: 'personal',
-  expense_source_id: '',  // Add this
-  note: '',
-});
-  ;
 
   const [filters, setFilters] = useState({
     category_id: '',
@@ -52,6 +31,20 @@ const [formData, setFormData] = useState({
     date_to: '',
   });
 
+  // Fetch expense sources
+  useEffect(() => {
+    const fetchSources = async () => {
+      try {
+        const sources = await api.getExpenseSources();
+        setExpenseSources(sources);
+      } catch (err) {
+        console.error('Failed to fetch expense sources:', err);
+      }
+    };
+    fetchSources();
+  }, []);
+
+  // Fetch data
   useEffect(() => {
     fetchData();
   }, []);
@@ -106,6 +99,7 @@ const [formData, setFormData] = useState({
         category_id: '',
         mode: 'cash',
         need_type: 'personal',
+        expense_source_id: '',
         note: '',
       });
       fetchData();
@@ -136,9 +130,9 @@ const [formData, setFormData] = useState({
   };
 
   const getSourceName = (id) => {
-  if (!id) return '-';
-  const source = expenseSources.find((s) => s.id === id);
-  return source ? source.name : 'Unknown';
+    if (!id) return '-';
+    const source = expenseSources.find((s) => s.id === id);
+    return source ? source.name : 'Unknown';
   };
 
   if (loading) return <div className="p-8">Loading...</div>;
@@ -158,6 +152,7 @@ const [formData, setFormData] = useState({
               category_id: '',
               mode: 'cash',
               need_type: 'personal',
+              expense_source_id: '',
               note: '',
             });
           }}
@@ -315,13 +310,13 @@ const [formData, setFormData] = useState({
                 className="w-full border rounded px-3 py-2 mb-3"
               >
                 <option value="">Select Expense Source (Optional)</option>
-                {expenseSources.map((source) => 
-                  (
-                  <option key={source.id} value={source.id}>{source.name} ({source.owner}) </option>
-                  ))
-                }
+                {expenseSources.map((source) => (
+                  <option key={source.id} value={source.id}>
+                    {source.name} ({source.owner})
+                  </option>
+                ))}
               </select>
-              
+
               <textarea
                 name="note"
                 placeholder="Notes"
