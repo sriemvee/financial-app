@@ -14,3 +14,38 @@ CREATE INDEX IF NOT EXISTS idx_expenses_category_id ON expenses(category_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_import_batch_id ON expenses(import_batch_id);
 CREATE INDEX IF NOT EXISTS idx_categories_user_id ON categories(user_id);
 CREATE INDEX IF NOT EXISTS idx_import_batches_user_id ON import_batches(user_id);
+
+-- Income Sources (e.g., ICICI_SRINI_SALARY, UPI_SRINI, etc.)
+CREATE TABLE IF NOT EXISTS income_sources (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    type TEXT,  -- salary, freelance, investment, bonus, transfer, etc.
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Expense Sources (e.g., Srini's UPI, Amazon Credit Card, etc.)
+CREATE TABLE IF NOT EXISTS expense_sources (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    description TEXT,
+    type TEXT,  -- upi, credit_card, debit_card, wallet, etc.
+    owner TEXT,  -- who owns this source (Srini, Jaya, Joint, etc.)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Income table
+CREATE TABLE IF NOT EXISTS income (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    amount REAL NOT NULL,
+    date TEXT NOT NULL,
+    source_id INTEGER NOT NULL,
+    note TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (source_id) REFERENCES income_sources(id)
+);
+
+-- Update expenses table to use expense_sources
+ALTER TABLE expenses ADD COLUMN expense_source_id INTEGER;
