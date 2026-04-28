@@ -18,6 +18,31 @@ const Expenses = () => {
     need_type: 'personal',
     note: '',
   });
+  const [expenseSources, setExpenseSources] = useState([]);
+  useEffect(() => {
+  const fetchSources = async () => {
+    try {
+      const sources = await api.getExpenseSources();
+      setExpenseSources(sources);
+    } catch (err) {
+      console.error('Failed to fetch expense sources:', err);
+    }
+  };
+  fetchSources();
+}, []);
+
+// Add to formData state
+const [formData, setFormData] = useState({
+  user_id: 1,
+  amount: '',
+  date: new Date().toISOString().split('T')[0],
+  category_id: '',
+  mode: 'cash',
+  need_type: 'personal',
+  expense_source_id: '',  // Add this
+  note: '',
+});
+  ;
 
   const [filters, setFilters] = useState({
     category_id: '',
@@ -108,6 +133,12 @@ const Expenses = () => {
   const getCategoryName = (id) => {
     const cat = categories.find((c) => c.id === id);
     return cat ? cat.name : 'Unknown';
+  };
+
+  const getSourceName = (id) => {
+  if (!id) return '-';
+  const source = expenseSources.find((s) => s.id === id);
+  return source ? source.name : 'Unknown';
   };
 
   if (loading) return <div className="p-8">Loading...</div>;
@@ -277,6 +308,20 @@ const Expenses = () => {
                 <option value="family">Family</option>
               </select>
 
+              <select
+                name="expense_source_id"
+                value={formData.expense_source_id}
+                onChange={handleFormChange}
+                className="w-full border rounded px-3 py-2 mb-3"
+              >
+                <option value="">Select Expense Source (Optional)</option>
+                {expenseSources.map((source) => 
+                  (
+                  <option key={source.id} value={source.id}>{source.name} ({source.owner}) </option>
+                  ))
+                }
+              </select>
+              
               <textarea
                 name="note"
                 placeholder="Notes"
@@ -319,6 +364,7 @@ const Expenses = () => {
                 <th className="border p-3 text-left">Mode</th>
                 <th className="border p-3 text-left">Need Type</th>
                 <th className="border p-3 text-left">Note</th>
+                <th className="border p-3 text-left">Source</th>
                 <th className="border p-3 text-center">Actions</th>
               </tr>
             </thead>
@@ -333,6 +379,7 @@ const Expenses = () => {
                   <td className="border p-3 capitalize">{expense.mode}</td>
                   <td className="border p-3 capitalize">{expense.need_type}</td>
                   <td className="border p-3 text-sm">{expense.note || '-'}</td>
+                  <td className="border p-3">{getSourceName(expense.expense_source_id)}</td>
                   <td className="border p-3 text-center">
                     <button
                       onClick={() => handleEdit(expense)}
