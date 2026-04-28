@@ -11,10 +11,11 @@ class ExpenseCreate(BaseModel):
     amount: float
     date: str
     category_id: int
-    mode: str  # cash, upi, card, bank_transfer, subscription
-    need_type: str  # personal, spouse, household, official, kids, family
+    mode: str
+    need_type: str
+    expense_source_id: Optional[int] = None  # Add this
     note: Optional[str] = None
-    source: str = "manual"  # manual, quick_add, csv
+    source: str = "manual"
     import_batch_id: Optional[int] = None
 
 class ExpenseUpdate(BaseModel):
@@ -97,8 +98,8 @@ async def create_expense(expense: ExpenseCreate):
     
     cursor.execute(
         """INSERT INTO expenses 
-           (user_id, amount, date, category_id, mode, need_type, note, source, import_batch_id) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           (user_id, amount, date, category_id, mode, need_type, expense_source_id, note, source, import_batch_id) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             expense.user_id,
             expense.amount,
@@ -106,6 +107,7 @@ async def create_expense(expense: ExpenseCreate):
             expense.category_id,
             expense.mode,
             expense.need_type,
+            expense.expense_source_id,
             expense.note,
             expense.source,
             expense.import_batch_id
@@ -123,6 +125,7 @@ async def create_expense(expense: ExpenseCreate):
         "category_id": expense.category_id,
         "mode": expense.mode,
         "need_type": expense.need_type,
+        "expense_source_id": expense.expense_source_id,
         "note": expense.note
     }
 
