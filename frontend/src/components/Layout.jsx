@@ -18,6 +18,22 @@ const Layout = () => {
           </li>
           <li>
             <Link
+              to="/income"
+              className="block p-3 rounded hover:bg-gray-800 transition"
+            >
+              💰 Income
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/sources"
+              className="block p-3 rounded hover:bg-gray-800 transition"
+            >
+              🔗 Manage Sources
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/expenses"
               className="block p-3 rounded hover:bg-gray-800 transition"
             >
