@@ -24,10 +24,10 @@ app.add_middleware(
 from routers import expenses, categories, summary, csv_import
 
 # Include routers
-app.include_router(expenses.router)
-app.include_router(categories.router)
-app.include_router(summary.router)
-app.include_router(csv_import.router)
+app.include_router(categories.router, prefix="/categories")
+app.include_router(expenses.router, prefix="/expenses")
+app.include_router(summary.router, prefix="/summary")
+app.include_router(csv_import.router, prefix="/csv-import")
 
 @app.get("/")
 def read_root():
