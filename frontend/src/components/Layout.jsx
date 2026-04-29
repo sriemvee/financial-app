@@ -50,6 +50,14 @@ const Layout = () => {
           </li>
           <li>
             <Link
+              to="/categories"
+              className="block p-3 rounded hover:bg-gray-800 transition"
+            >
+              📂 Categories
+            </Link>
+          </li>
+          <li>
+            <Link
               to="/import"
               className="block p-3 rounded hover:bg-gray-800 transition"
             >
