@@ -6,6 +6,7 @@ import Summary from './pages/Summary';
 import Import from './pages/Import';
 import Income from './pages/Income';
 import Sources from './pages/Sources';
+import Categories from './pages/Categories';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/import" element={<Import />} />
           <Route path="/income" element={<Income />} />
           <Route path="/sources" element={<Sources />} />
+          <Route path="/categories" element={<Categories />} />
         </Route>
       </Routes>
     </Router>
