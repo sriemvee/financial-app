@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../utils/api';
-import Categories from './Categories';
 
 const Sources = () => {
   const [incomeSources, setIncomeSources] = useState([]);
@@ -129,16 +128,6 @@ const Sources = () => {
         >
           Expense Sources
         </button>
-        <button
-          onClick={() => setActiveTab('categories')}
-          className={`px-6 py-2 rounded font-semibold ${
-          activeTab === 'categories'
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-        }`}
-        >
-          Categories
-        </button>
       </div>
 
       {/* Form Modal */}
@@ -188,8 +177,6 @@ const Sources = () => {
                   className="w-full border rounded px-3 py-2 mb-3"
                 />
               )}
-
-              {activeTab === 'categories' && <Categories />}
 
               <div className="flex gap-2">
                 <button
