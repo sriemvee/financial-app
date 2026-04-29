@@ -109,113 +109,113 @@ export const api = {
     if (!res.ok) throw new Error('Failed to delete import batch');
     return res.json();
   },
+
+  // Income
+  getIncome: async (filters = {}) => {
+    const url = new URL(`${API_BASE_URL}/income/`);
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) url.searchParams.append(key, value);
+    });
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to fetch income');
+    return res.json();
+  },
+
+  createIncome: async (income) => {
+    const res = await fetch(`${API_BASE_URL}/income/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(income),
+    });
+    if (!res.ok) throw new Error('Failed to create income');
+    return res.json();
+  },
+
+  updateIncome: async (id, income) => {
+    const res = await fetch(`${API_BASE_URL}/income/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(income),
+    });
+    if (!res.ok) throw new Error('Failed to update income');
+    return res.json();
+  },
+
+  deleteIncome: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/income/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete income');
+    return res.json();
+  },
+
+  // Income Sources
+  getIncomeSources: async () => {
+    const res = await fetch(`${API_BASE_URL}/sources/income`);
+    if (!res.ok) throw new Error('Failed to fetch income sources');
+    return res.json();
+  },
+
+  createIncomeSource: async (source) => {
+    const res = await fetch(`${API_BASE_URL}/sources/income`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(source),
+    });
+    if (!res.ok) throw new Error('Failed to create income source');
+    return res.json();
+  },
+
+  updateIncomeSource: async (id, source) => {
+    const res = await fetch(`${API_BASE_URL}/sources/income/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(source),
+    });
+    if (!res.ok) throw new Error('Failed to update income source');
+    return res.json();
+  },
+
+  deleteIncomeSource: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/sources/income/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete income source');
+    return res.json();
+  },
+
+  // Expense Sources
+  getExpenseSources: async () => {
+    const res = await fetch(`${API_BASE_URL}/sources/expense`);
+    if (!res.ok) throw new Error('Failed to fetch expense sources');
+    return res.json();
+  },
+
+  createExpenseSource: async (source) => {
+    const res = await fetch(`${API_BASE_URL}/sources/expense`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(source),
+    });
+    if (!res.ok) throw new Error('Failed to create expense source');
+    return res.json();
+  },
+
+  updateExpenseSource: async (id, source) => {
+    const res = await fetch(`${API_BASE_URL}/sources/expense/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(source),
+    });
+    if (!res.ok) throw new Error('Failed to update expense source');
+    return res.json();
+  },
+
+  deleteExpenseSource: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/sources/expense/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete expense source');
+    return res.json();
+  },
 };
-
-// Income
-getIncome: async (filters = {}) => {
-  const url = new URL(`${API_BASE_URL}/income/`);
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value) url.searchParams.append(key, value);
-  });
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch income');
-  return res.json();
-},
-
-createIncome: async (income) => {
-  const res = await fetch(`${API_BASE_URL}/income/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(income),
-  });
-  if (!res.ok) throw new Error('Failed to create income');
-  return res.json();
-},
-
-updateIncome: async (id, income) => {
-  const res = await fetch(`${API_BASE_URL}/income/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(income),
-  });
-  if (!res.ok) throw new Error('Failed to update income');
-  return res.json();
-},
-
-deleteIncome: async (id) => {
-  const res = await fetch(`${API_BASE_URL}/income/${id}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) throw new Error('Failed to delete income');
-  return res.json();
-},
-
-// Income Sources
-getIncomeSources: async () => {
-  const res = await fetch(`${API_BASE_URL}/sources/income`);
-  if (!res.ok) throw new Error('Failed to fetch income sources');
-  return res.json();
-},
-
-createIncomeSource: async (source) => {
-  const res = await fetch(`${API_BASE_URL}/sources/income`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(source),
-  });
-  if (!res.ok) throw new Error('Failed to create income source');
-  return res.json();
-},
-
-updateIncomeSource: async (id, source) => {
-  const res = await fetch(`${API_BASE_URL}/sources/income/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(source),
-  });
-  if (!res.ok) throw new Error('Failed to update income source');
-  return res.json();
-},
-
-deleteIncomeSource: async (id) => {
-  const res = await fetch(`${API_BASE_URL}/sources/income/${id}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) throw new Error('Failed to delete income source');
-  return res.json();
-},
-
-// Expense Sources
-getExpenseSources: async () => {
-  const res = await fetch(`${API_BASE_URL}/sources/expense`);
-  if (!res.ok) throw new Error('Failed to fetch expense sources');
-  return res.json();
-},
-
-createExpenseSource: async (source) => {
-  const res = await fetch(`${API_BASE_URL}/sources/expense`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(source),
-  });
-  if (!res.ok) throw new Error('Failed to create expense source');
-  return res.json();
-},
-
-updateExpenseSource: async (id, source) => {
-  const res = await fetch(`${API_BASE_URL}/sources/expense/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(source),
-  });
-  if (!res.ok) throw new Error('Failed to update expense source');
-  return res.json();
-},
-
-deleteExpenseSource: async (id) => {
-  const res = await fetch(`${API_BASE_URL}/sources/expense/${id}`, {
-    method: 'DELETE',
-  });
-  if (!res.ok) throw new Error('Failed to delete expense source');
-  return res.json();
-},
