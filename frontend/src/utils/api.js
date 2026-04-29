@@ -9,6 +9,34 @@ export const api = {
     if (!res.ok) throw new Error('Failed to fetch categories');
     return res.json();
   },
+  createCategory: async (category) => {
+    const res = await fetch(`${API_BASE_URL}/categories/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(category),
+      }
+    );
+    if (!res.ok) throw new Error('Failed to create category');
+    return res.json();
+  },
+
+  updateCategory: async (id, category) => {
+    const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(category),
+      });
+    if (!res.ok) throw new Error('Failed to update category');
+    return res.json();
+  },
+
+  deleteCategory: async (id) => {
+    const res = await fetch(`${API_BASE_URL}/categories/${id}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete category');
+    return res.json();
+  },
 
   // Expenses
   getExpenses: async (filters = {}) => {
