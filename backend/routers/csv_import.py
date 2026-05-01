@@ -30,127 +30,119 @@ def parse_date(date_str):
     except ValueError:
         return None
 
-def categorize_transaction(remarks, user_id=1):
-    """
-    Auto-categorize transaction based on remarks
-    Rules based on your mapping:
-    - BIL/NEFT/.*Rent → Rent
-    - ATD/Auto Debit CC → Credit Card Payment
-    - NEFT-.*SALARY → Income
-    - BIL/Home Loan → Home Loan
-    - To RD or TO PPF → Investments
-    - CAM/.*CASH WDL → Miscellaneous
-    - ACH/NSE → Investments
-    - INF/IWISH → Savings
-    - UPI/.* → Extract merchant name
-    """
+def get_or_create_category(name, group_name, user_id=1):
+    """Get category by name, create if doesn't exist"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Category mapping
-    category_map = {
-        'rent': 'Rent',
-        'credit_card_payment': 'Credit Card Payment',
-        'home_loan': 'Home Loan',
-        'investments': 'Investments',
-        'savings': 'Savings',
-        'miscellaneous': 'Miscellaneous',
-    }
+    cursor.execute(
+        "SELECT id FROM categories WHERE name = ? AND user_id = ?",
+        (name, user_id)
+    )
+    result = cursor.fetchone()
     
-    category_id = None
+    if result:
+        category_id = result[0]
+    else:
+        # Create category if it doesn't exist
+        cursor.execute(
+            "INSERT INTO categories (name, group_name, user_id) VALUES (?, ?, ?)",
+            (name, group_name, user_id)
+        )
+        conn.commit()
+        category_id = cursor.lastrowid
+    
+    conn.close()
+    return category_id
+
+def categorize_transaction(remarks, user_id=1):
+    """
+    Auto-categorize transaction based on remarks
+    """
+    remarks_upper = remarks.upper()
+    
     category_name = 'Miscellaneous'  # default
+    group_name = 'misc'
     need_type = 'want'  # default
     mode = 'bank_transfer'  # default
     
-    remarks_upper = remarks.upper()
-    
-    # Income detection
-    if 'SALARY' in remarks_upper:
-        cursor.execute("SELECT id FROM categories WHERE name = 'Salary' AND user_id = ?", (user_id,))
-        result = cursor.fetchone()
-        category_id = result[0] if result else None
+    # Income detection - SALARY, BONUS
+    if any(x in remarks_upper for x in ['SALARY', 'NEFT-', 'IMPS']):
         category_name = 'Salary'
+        group_name = 'income'
         need_type = 'income'
         mode = 'bank_transfer'
     
     # Rent
-    elif 'RENT' in remarks_upper and 'NEFT' in remarks_upper:
-        cursor.execute("SELECT id FROM categories WHERE name = 'Rent' AND user_id = ?", (user_id,))
-        result = cursor.fetchone()
-        category_id = result[0] if result else None
+    elif 'RENT' in remarks_upper and ('BIL' in remarks_upper or 'NEFT' in remarks_upper):
         category_name = 'Rent'
+        group_name = 'household'
         need_type = 'need'
         mode = 'bank_transfer'
     
     # Credit Card Payment
-    elif 'ATD' in remarks_upper and 'AUTO DEBIT CC' in remarks_upper:
-        cursor.execute("SELECT id FROM categories WHERE name = 'Credit Card Payment' AND user_id = ?", (user_id,))
-        result = cursor.fetchone()
-        category_id = result[0] if result else None
+    elif 'ATD' in remarks_upper and 'AUTO DEBIT' in remarks_upper and 'CC' in remarks_upper:
         category_name = 'Credit Card Payment'
+        group_name = 'financial'
         need_type = 'need'
         mode = 'bank_transfer'
     
     # Home Loan
     elif 'HOME LOAN' in remarks_upper and 'EMI' in remarks_upper:
-        cursor.execute("SELECT id FROM categories WHERE name = 'Home Loan' AND user_id = ?", (user_id,))
-        result = cursor.fetchone()
-        category_id = result[0] if result else None
         category_name = 'Home Loan'
+        group_name = 'financial'
         need_type = 'need'
         mode = 'bank_transfer'
     
-    # Investments (RD, PPF, NSE)
-    elif any(x in remarks_upper for x in ['TO RD', 'TO PPF', 'ACH/NSE']):
-        cursor.execute("SELECT id FROM categories WHERE name = 'Investments' AND user_id = ?", (user_id,))
-        result = cursor.fetchone()
-        category_id = result[0] if result else None
+    # Insurance (LIC, LIFE, etc.)
+    elif any(x in remarks_upper for x in ['LIFEINSURA', 'INSURANCE', 'LIC']):
+        category_name = 'Insurance'
+        group_name = 'financial'
+        need_type = 'need'
+        mode = 'bank_transfer'
+    
+    # Investments (RD, PPF, NSE, ACH)
+    elif any(x in remarks_upper for x in ['TO RD', 'TO PPF', 'ACH/NSE', 'NSE CLEARING']):
         category_name = 'Investments'
+        group_name = 'financial'
         need_type = 'want'
         mode = 'bank_transfer'
     
-    # Savings
-    elif 'IWISH' in remarks_upper:
-        cursor.execute("SELECT id FROM categories WHERE name = 'Savings' AND user_id = ?", (user_id,))
-        result = cursor.fetchone()
-        category_id = result[0] if result else None
+    # Savings (IWISH, CONTRIBUTION)
+    elif any(x in remarks_upper for x in ['IWISH', 'CONTRIBUTION']):
         category_name = 'Savings'
+        group_name = 'financial'
         need_type = 'want'
         mode = 'bank_transfer'
     
     # Cash Withdrawal
-    elif 'CASH WDL' in remarks_upper or 'CAM' in remarks_upper:
-        cursor.execute("SELECT id FROM categories WHERE name = 'Miscellaneous' AND user_id = ?", (user_id,))
-        result = cursor.fetchone()
-        category_id = result[0] if result else None
-        category_name = 'Miscellaneous'
+    elif any(x in remarks_upper for x in ['CASH WDL', 'CAM/', 'NFS/CASH']):
+        category_name = 'Cash Withdrawal'
+        group_name = 'misc'
         need_type = 'want'
         mode = 'cash'
     
     # UPI transactions
     elif 'UPI/' in remarks_upper:
         mode = 'upi'
-        # Try to extract merchant from UPI remarks
-        # Extract merchant name for further categorization
-        cursor.execute("SELECT id FROM categories WHERE name = 'Miscellaneous' AND user_id = ?", (user_id,))
-        result = cursor.fetchone()
-        category_id = result[0] if result else None
-        category_name = 'Miscellaneous'
+        # Try to extract merchant category from UPI remarks
+        if any(x in remarks_upper for x in ['SWIGGY', 'ZOMATO', 'FOOD']):
+            category_name = 'Dining'
+            group_name = 'personal'
+        elif any(x in remarks_upper for x in ['AMAZON', 'FLIPKART', 'SHOPPING']):
+            category_name = 'Shopping'
+            group_name = 'personal'
+        elif any(x in remarks_upper for x in ['NETFLIX', 'SPOTIFY', 'ENTERTAINMENT']):
+            category_name = 'Entertainment'
+            group_name = 'personal'
+        elif any(x in remarks_upper for x in ['FUEL', 'PETROL', 'GAS']):
+            category_name = 'Transportation'
+            group_name = 'personal'
+        else:
+            category_name = 'Miscellaneous'
+            group_name = 'misc'
     
-    # Check auto-categorization rules as fallback
-    if category_id is None:
-        cursor.execute(
-            "SELECT c.id, c.name FROM auto_categorization_rules acr "
-            "JOIN categories c ON acr.category_id = c.id "
-            "WHERE user_id = ? AND UPPER(c.name) LIKE ? LIMIT 1",
-            (user_id, '%' + category_name.upper() + '%')
-        )
-        result = cursor.fetchone()
-        if result:
-            category_id = result[0]
-            category_name = result[1]
-    
-    conn.close()
+    category_id = get_or_create_category(category_name, group_name, user_id)
     
     return {
         'category_id': category_id,
@@ -166,7 +158,7 @@ def detect_duplicate(user_id, amount, date, description):
     
     cursor.execute(
         "SELECT id FROM expenses WHERE user_id = ? AND amount = ? AND date = ? AND note LIKE ?",
-        (user_id, amount, date, f'%{description}%')
+        (user_id, amount, date, f'%{description[:50]}%')
     )
     result = cursor.fetchone()
     conn.close()
@@ -210,30 +202,42 @@ async def upload_csv(file: UploadFile = File(...)):
         # Process each row
         for idx, row in enumerate(rows, 1):
             try:
-                # Map CSV columns to our format
-                # Expected columns: Value Date, Transaction Date, Withdrawal Amount(INR), Deposit Amount(INR), Transaction Remarks, Balance(INR)
+                # Clean up row values
+                value_date = (row.get('Value Date', '') or '').strip()
+                transaction_date = (row.get('Transaction Date', '') or '').strip() or value_date
+                withdrawal = (row.get('Withdrawal Amount(INR)', '') or '').strip().replace(',', '')
+                deposit = (row.get('Deposit Amount(INR)', '') or '').strip().replace(',', '')
+                remarks = (row.get('Transaction Remarks', '') or '').strip()
                 
-                value_date = row.get('Value Date', '').strip()
-                transaction_date = row.get('Transaction Date', '').strip()
-                withdrawal = row.get('Withdrawal Amount(INR)', '0').strip()
-                deposit = row.get('Deposit Amount(INR)', '0').strip()
-                remarks = row.get('Transaction Remarks', '').strip()
+                # Skip empty rows
+                if not remarks or not transaction_date:
+                    skipped_count += 1
+                    continue
                 
                 # Parse date
-                date_str = parse_date(transaction_date or value_date)
+                date_str = parse_date(transaction_date)
                 if not date_str:
                     skipped_count += 1
-                    errors.append(f"Row {idx}: Invalid date format")
+                    errors.append(f"Row {idx}: Invalid date format '{transaction_date}'")
                     continue
                 
                 # Determine amount and type (expense vs income)
-                if withdrawal and float(withdrawal) > 0:
-                    amount = float(withdrawal)
-                    transaction_type = 'expense'
-                elif deposit and float(deposit) > 0:
-                    amount = float(deposit)
-                    transaction_type = 'income'
-                else:
+                amount = None
+                transaction_type = None
+                
+                try:
+                    if withdrawal and float(withdrawal) > 0:
+                        amount = float(withdrawal)
+                        transaction_type = 'expense'
+                    elif deposit and float(deposit) > 0:
+                        amount = float(deposit)
+                        transaction_type = 'income'
+                except ValueError:
+                    skipped_count += 1
+                    errors.append(f"Row {idx}: Invalid amount format")
+                    continue
+                
+                if not amount or not transaction_type:
                     skipped_count += 1
                     continue
                 
@@ -264,9 +268,9 @@ async def upload_csv(file: UploadFile = File(...)):
                         )
                     )
                 else:  # income
-                    # For income, we need to find or create an income source
-                    # Extract source from remarks
+                    # Extract source name from remarks (first part before /)
                     source_name = remarks.split('/')[0] if '/' in remarks else 'CSV Import'
+                    source_name = source_name.strip()
                     
                     cursor.execute(
                         "SELECT id FROM income_sources WHERE name = ?",
@@ -308,7 +312,7 @@ async def upload_csv(file: UploadFile = File(...)):
         
         message = f"CSV import completed. Imported: {imported_count}, Skipped: {skipped_count}, Duplicates: {duplicates_found}"
         if errors:
-            message += f"\nErrors: {'; '.join(errors[:5])}"  # Show first 5 errors
+            message += f"\nFirst 5 errors: {'; '.join(errors[:5])}"
         
         return {
             "import_batch_id": batch_id,
@@ -345,8 +349,8 @@ async def get_import_batch(batch_id: int):
     
     cursor.execute(
         "SELECT id, filename, total_rows, imported_count, skipped_count, duplicates_found, import_date "
-        "FROM import_batches WHERE id = ?"
-        , (batch_id,)
+        "FROM import_batches WHERE id = ?",
+        (batch_id,)
     )
     row = cursor.fetchone()
     conn.close()
@@ -365,6 +369,13 @@ async def delete_import_batch(batch_id: int):
     try:
         # Delete associated expenses
         cursor.execute("DELETE FROM expenses WHERE import_batch_id = ?", (batch_id,))
+        
+        # Delete associated income
+        cursor.execute(
+            "DELETE FROM income WHERE id IN (SELECT id FROM income WHERE user_id = 1 AND date IN "
+            "(SELECT date FROM expenses WHERE import_batch_id = ?))",
+            (batch_id,)
+        )
         
         # Delete batch
         cursor.execute("DELETE FROM import_batches WHERE id = ?", (batch_id,))
