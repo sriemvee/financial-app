@@ -152,13 +152,14 @@ def categorize_transaction(remarks, user_id=1):
     }
 
 def detect_duplicate(user_id, amount, date, description):
-    """Check if transaction already exists"""
+    """Check if exact transaction already exists (using full description)"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
+    # Check for EXACT match - same date, amount, AND exact same description
     cursor.execute(
-        "SELECT id FROM expenses WHERE user_id = ? AND amount = ? AND date = ? AND note LIKE ?",
-        (user_id, amount, date, f'%{description[:50]}%')
+        "SELECT id FROM expenses WHERE user_id = ? AND amount = ? AND date = ? AND note = ?",
+        (user_id, amount, date, description)
     )
     result = cursor.fetchone()
     conn.close()
