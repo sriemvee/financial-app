@@ -4,14 +4,14 @@ You don’t need any tools or commands — just copy this block into a file.
 
 ---
 
-# 📘 **Financial Tracker — Local‑First Personal Finance App**  
-*A minimal, private, local‑only financial tracking tool built with FastAPI, SQLite, and a simple web UI.*
+# 📘 **Financial Tracker — Local-First Personal Finance App**  
+*A minimal, private, local-only financial tracking tool built with FastAPI, SQLite, and a simple web UI.*
 
 ---
 
 ## 🧭 1. Overview
 
-This project is a **local‑first personal financial tracker** designed for:
+This project is a **local-first personal financial tracker** designed for:
 
 - You  
 - Your spouse  
@@ -39,7 +39,7 @@ The tool provides a clean, minimal web interface for adding, viewing, and analyz
 - Vite  
 - Tailwind CSS  
 - Runs at `http://localhost:5173`  
-- Simple, minimal, spouse‑friendly UI  
+- Simple, minimal, spouse-friendly UI  
 
 ### **Backend**
 - FastAPI  
@@ -48,7 +48,7 @@ The tool provides a clean, minimal web interface for adding, viewing, and analyz
 - Handles:
   - CRUD operations  
   - CSV import  
-  - Auto‑categorization  
+  - Auto-categorization  
   - Recurring detection  
   - Summary analytics  
 
@@ -130,13 +130,13 @@ financial-tracker/
 - Category breakdown  
 - Trend analysis  
 - Recurring expense detection  
-- Auto‑categorization  
+- Auto-categorization  
 - CSV import with mapping  
 - Export to CSV  
 
 ### **4.6 Excluded (for now)**
 - Budgets  
-- Safe‑to‑spend calculation  
+- Safe-to-spend calculation  
 
 ---
 
@@ -248,18 +248,18 @@ Filters:
 
 1. User uploads CSV  
 2. Backend reads file  
-3. Auto‑detects columns  
+3. Auto-detects columns  
 4. Maps:
    - amount  
    - date  
    - description  
-5. Applies auto‑categorization rules  
+5. Applies auto-categorization rules  
 6. Flags duplicates  
 7. Saves to DB under an import batch  
 
 ---
 
-## 🤖 9. Auto‑Categorization Logic
+## 🤖 9. Auto-Categorization Logic
 
 Rules stored in DB:
 
@@ -321,15 +321,92 @@ Copilot will generate the code.
 
 ---
 
-## 🚀 12. Future Enhancements
+## 🖥️ 12. Desktop App (One-Click Launch)
+
+Launch the entire Financial App — backend **and** frontend — with a single double-click, no terminal required.
+
+### Prerequisites
+
+| Tool | Minimum version | Download |
+|------|-----------------|----------|
+| Python | 3.9+ | https://www.python.org/downloads/ |
+| Node.js + npm | 18+ | https://nodejs.org/ |
+
+Install Python backend dependencies once:
+
+```
+cd backend
+pip install fastapi uvicorn[standard]
+```
+
+Install frontend dependencies once:
+
+```
+cd frontend
+npm install
+```
+
+---
+
+### Option A — Simple Batch File (no build step)
+
+Double-click **`start_app.bat`** in the project root.
+
+- Opens two console windows (backend + frontend)
+- Auto-opens the browser at `http://localhost:5173`
+- Close the console windows to stop the app
+
+---
+
+### Option B — Standalone EXE (recommended for distribution)
+
+**Step 1 — Build the EXE once:**
+
+```
+build_exe.bat
+```
+
+This installs PyInstaller and produces **`dist\financial_app.exe`**.
+
+**Step 2 — Run the app:**
+
+```
+dist\financial_app.exe
+```
+
+Or copy `financial_app.exe` next to the `backend\` and `frontend\` folders and double-click it.
+
+**What happens:**
+1. Checks that Python, Node.js, and npm are installed
+2. Starts the FastAPI backend on port 8000
+3. Starts the React / Vite dev server on port 5173
+4. Auto-opens the browser to `http://localhost:5173`
+5. Streams live logs from both services in the console
+6. Press **Ctrl+C** to gracefully stop both services
+
+---
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| *Port 8000 already in use* | Stop any running Python/uvicorn process |
+| *Port 5173 already in use* | Stop any running Vite/npm process |
+| *Python not found* | Add Python to your PATH during installation |
+| *npm not found* | Reinstall Node.js and ensure it is added to PATH |
+| *Backend directory not found* | Run the launcher from the project root |
+
+---
+
+## 🚀 13. Future Enhancements
 
 - OCR receipt scanning  
 - Email receipt parsing  
-- Multi‑machine sync  
+- Multi-machine sync  
 - Desktop app (Tauri)  
 - Budgeting module  
-- Safe‑to‑spend calculation  
-- AI‑based insights  
+- Safe-to-spend calculation  
+- AI-based insights  
 
 ---
 
