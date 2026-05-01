@@ -180,7 +180,25 @@ async def upload_csv(file: UploadFile = File(...)):
         
         if not rows:
             raise HTTPException(status_code=400, detail="CSV file is empty")
-        
+
+        # Remove BOM from column names
+        if rows:
+            first_row = rows[0]
+            cleaned_keys = {}
+            for key in first_row.keys():
+                cleaned_key = key.lstrip('\ufeff')  # Remove BOM
+                cleaned_keys[cleaned_key] = first_row[key]
+            
+            # Rebuild rows with cleaned column names
+            cleaned_rows = []
+            for row in rows:
+                cleaned_row = {}
+                for key in row.keys():
+                    cleaned_key = key.lstrip('\ufeff')
+                    cleaned_row[cleaned_key] = row[key]
+                cleaned_rows.append(cleaned_row)
+            rows = cleaned_rows
+            
         # Debug: Print column names
         print(f"✅ Column names: {list(rows[0].keys())}")
         
