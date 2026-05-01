@@ -202,6 +202,7 @@ def main():
     # 1. Dependency check
     if not check_dependencies():
         log("❌ One or more dependencies are missing. Exiting.")
+        log("   Please install the missing dependencies and try again.")
         sys.exit(1)
 
     # 2. Validate project directories
