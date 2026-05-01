@@ -408,34 +408,33 @@ async def get_import_batches():
         result.append(row_dict)
     
     return result
-    
-@router.get("/batches")
-async def get_import_batches():
-    """Get all import batches"""
+
+@router.get("/batches/{batch_id}")
+async def get_import_batch(batch_id: int):
+    """Get a specific import batch"""
     conn = get_db_connection()
     cursor = conn.cursor()
     
     cursor.execute(
         "SELECT id, filename, total_rows, imported_count, skipped_count, duplicates_found, import_date "
-        "FROM import_batches ORDER BY import_date DESC"
+        "FROM import_batches WHERE id = ?",
+        (batch_id,)
     )
-    rows = cursor.fetchall()
+    row = cursor.fetchone()
     conn.close()
     
-    # Format the import_date for display
-    result = []
-    for row in rows:
-        row_dict = dict(row)
-        if row_dict['import_date']:
-            try:
-                # Parse the timestamp and format it nicely
-                dt = datetime.strptime(row_dict['import_date'], '%Y-%m-%d %H:%M:%S')
-                row_dict['import_date'] = dt.strftime('%d-%b-%Y %H:%M')  # e.g., "29-Apr-2026 08:19"
-            except:
-                pass  # If parsing fails, keep original
-        result.append(row_dict)
+    if not row:
+        raise HTTPException(status_code=404, detail="Batch not found")
     
-    return result
+    row_dict = dict(row)
+    if row_dict['import_date']:
+        try:
+            dt = datetime.strptime(row_dict['import_date'], '%Y-%m-%d %H:%M:%S')
+            row_dict['import_date'] = dt.strftime('%d-%b-%Y %H:%M')
+        except:
+            pass
+    
+    return row_dict
 
 @router.delete("/batches/{batch_id}")
 async def delete_import_batch(batch_id: int):
