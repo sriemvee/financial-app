@@ -202,7 +202,6 @@ def main():
     # 1. Dependency check
     if not check_dependencies():
         log("❌ One or more dependencies are missing. Exiting.")
-        input("\nPress Enter to close…")
         sys.exit(1)
 
     # 2. Validate project directories
@@ -210,7 +209,6 @@ def main():
         if not os.path.isdir(path):
             log(f"❌ {label} directory not found: {path}")
             log("   Make sure you are running the launcher from the project root.")
-            input("\nPress Enter to close…")
             sys.exit(1)
 
     # 3. Start services
