@@ -15,19 +15,19 @@ const Summary = () => {
     const fetchSummary = async () => {
       try {
         setLoading(true);
-        const [summaryData, catBreakdown, modeBreakdown, trendsData] = await Promise.all([
-          api.getMonthlySummary(),
-          api.getCategoryBreakdown(),
-          api.getModeBreakdown(),
-          api.getExpenseTrends(6),
-        ]);
-
-        setSummary(summaryData);
-        setCategoryBreakdown(catBreakdown);
-        setModeBreakdown(modeBreakdown);
-        setTrends(trendsData);
+        const month = new Date().toISOString().slice(0, 7); // YYYY-MM format
+        const response = await fetch(`http://localhost:8000/summary/monthly?month=${month}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch summary: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        setSummary(data);
+        setError(null);
       } catch (err) {
         setError(err.message);
+        console.error('Error fetching summary:', err);
       } finally {
         setLoading(false);
       }
