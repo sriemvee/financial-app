@@ -176,8 +176,13 @@ async def upload_csv(file: UploadFile = File(...)):
         reader = csv.DictReader(io.StringIO(text))
         rows = list(reader)
         
+        print(f"✅ Read {len(rows)} rows from CSV")
+        
         if not rows:
             raise HTTPException(status_code=400, detail="CSV file is empty")
+        
+        # Debug: Print column names
+        print(f"✅ Column names: {list(rows[0].keys())}")
         
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -193,6 +198,7 @@ async def upload_csv(file: UploadFile = File(...)):
         )
         conn.commit()
         batch_id = cursor.lastrowid
+        print(f"✅ Created batch {batch_id}")
         
         imported_count = 0
         skipped_count = 0
@@ -209,14 +215,29 @@ async def upload_csv(file: UploadFile = File(...)):
                 deposit = (row.get('Deposit Amount(INR)', '') or '').strip().replace(',', '')
                 remarks = (row.get('Transaction Remarks', '') or '').strip()
                 
+                if idx <= 3:  # Print first 3 rows for debugging
+                    print(f"\n📋 Row {idx}:")
+                    print(f"   value_date: '{value_date}'")
+                    print(f"   transaction_date: '{transaction_date}'")
+                    print(f"   withdrawal: '{withdrawal}'")
+                    print(f"   deposit: '{deposit}'")
+                    print(f"   remarks: '{remarks[:60]}'")
+                
                 # Skip empty rows
                 if not remarks or not transaction_date:
+                    if idx <= 3:
+                        print(f"   ❌ Skipped: empty remarks or date")
                     skipped_count += 1
                     continue
                 
                 # Parse date
                 date_str = parse_date(transaction_date)
+                if idx <= 3:
+                    print(f"   parsed_date: '{date_str}'")
+                
                 if not date_str:
+                    if idx <= 3:
+                        print(f"   ❌ Skipped: invalid date format")
                     skipped_count += 1
                     errors.append(f"Row {idx}: Invalid date format '{transaction_date}'")
                     continue
@@ -232,19 +253,28 @@ async def upload_csv(file: UploadFile = File(...)):
                     elif deposit and float(deposit) > 0:
                         amount = float(deposit)
                         transaction_type = 'income'
-                except ValueError:
+                except ValueError as ve:
+                    if idx <= 3:
+                        print(f"   ❌ Skipped: invalid amount format - {ve}")
                     skipped_count += 1
                     errors.append(f"Row {idx}: Invalid amount format")
                     continue
                 
                 if not amount or not transaction_type:
+                    if idx <= 3:
+                        print(f"   ❌ Skipped: no amount or type")
                     skipped_count += 1
                     continue
+                
+                if idx <= 3:
+                    print(f"   ✅ Amount: {amount}, Type: {transaction_type}")
                 
                 # Check for duplicates
                 if detect_duplicate(user_id, amount, date_str, remarks):
                     duplicates_found += 1
                     skipped_count += 1
+                    if idx <= 3:
+                        print(f"   ❌ Skipped: duplicate found")
                     continue
                 
                 # Categorize
@@ -296,10 +326,13 @@ async def upload_csv(file: UploadFile = File(...)):
                 
                 conn.commit()
                 imported_count += 1
+                if idx <= 3:
+                    print(f"   ✅ Imported successfully")
                 
             except Exception as e:
                 skipped_count += 1
                 errors.append(f"Row {idx}: {str(e)}")
+                print(f"   ❌ Exception: {str(e)}")
                 continue
         
         # Update batch with final counts
@@ -314,6 +347,8 @@ async def upload_csv(file: UploadFile = File(...)):
         if errors:
             message += f"\nFirst 5 errors: {'; '.join(errors[:5])}"
         
+        print(f"\n✅ Final counts - Imported: {imported_count}, Skipped: {skipped_count}, Duplicates: {duplicates_found}")
+        
         return {
             "import_batch_id": batch_id,
             "total_rows": len(rows),
@@ -324,6 +359,7 @@ async def upload_csv(file: UploadFile = File(...)):
         }
     
     except Exception as e:
+        print(f"❌ Fatal error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Failed to import CSV: {str(e)}")
 
 @router.get("/batches")
