@@ -1,4 +1,5 @@
 import imaplib
+import os
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -40,10 +41,21 @@ def get_service() -> EmailTriageService:
 
 @router.get("/status")
 async def get_email_triage_status():
+    required_keys = ("EMAIL_IMAP_HOST", "EMAIL_USERNAME", "EMAIL_PASSWORD")
+    missing = [key for key in required_keys if not os.getenv(key)]
+    if missing:
+        return {
+            "configured": False,
+            "detail": "Missing required email configuration.",
+            "missing_variables": missing,
+        }
+
     try:
         config = EmailConfig.from_env()
     except EmailConfigError as exc:
-        return {"configured": False, "detail": str(exc)}
+        raise HTTPException(
+            status_code=500, detail="Email configuration could not be loaded."
+        ) from exc
 
     return {
         "configured": True,

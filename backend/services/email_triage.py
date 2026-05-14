@@ -164,7 +164,9 @@ class ImapEmailClient:
                     "STORE", message_id.encode("utf-8"), "+FLAGS", "(\\Deleted)"
                 )
                 if status != "OK":
-                    raise imaplib.IMAP4.error("Unable to flag one or more messages for deletion.")
+                    raise imaplib.IMAP4.error(
+                        f"Unable to flag message {message_id} for deletion."
+                    )
                 flagged_for_deletion.append(message_id)
 
             if flagged_for_deletion:

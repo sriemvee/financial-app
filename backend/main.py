@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-app = FastAPI(title="Email Triage Agent API")
+app = FastAPI(title="Financial App API")
 
 # Get environment variables
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
@@ -36,7 +36,7 @@ app.include_router(sources.router)
 
 @app.get("/")
 def read_root():
-    return {"message": "Email Triage Agent API is running!"}
+    return {"message": "Financial App API is running with email triage support."}
 
 if __name__ == "__main__":
     import uvicorn
