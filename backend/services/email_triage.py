@@ -75,6 +75,7 @@ class EmailConfig:
                     "no-reply,noreply,notifications,marketing,mailer-daemon",
                 )
             ),
+            # A value of 0 disables age-based scoring entirely.
             older_than_days=max(0, int(env.get("TRIAGE_OLDER_THAN_DAYS", "30"))),
             confirmation_window_minutes=max(
                 1, int(env.get("DELETE_CONFIRMATION_WINDOW_MINUTES", "15"))
@@ -157,6 +158,9 @@ class ImapEmailClient:
             mailbox.logout()
 
     def delete_messages(self, message_ids: Iterable[str]) -> int:
+        # Keep deletion best-effort atomic: if a later STORE fails after some
+        # messages were flagged, clear the \Deleted flag on those earlier
+        # messages before re-raising so the caller can safely retry.
         mailbox = self._connect()
         flagged_for_deletion: List[str] = []
         try:
@@ -312,6 +316,9 @@ class EmailTriageService:
                 "message_ids": request.message_ids,
             }
 
+        # Keep the request available if mailbox deletion fails so the user can
+        # retry after transient IMAP issues. ImapEmailClient.delete_messages()
+        # already performs best-effort rollback of any flags it set.
         deleted_count = self.client.delete_messages(request.message_ids)
         result = {
             "request_id": request_id,
