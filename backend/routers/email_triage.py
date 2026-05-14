@@ -3,7 +3,6 @@ import os
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-from typing import List
 
 from services.email_triage import (
     DeletionRequestStore,
@@ -19,7 +18,7 @@ request_store = DeletionRequestStore()
 
 
 class DeletionRequestCreate(BaseModel):
-    message_ids: List[str] = Field(default_factory=list)
+    message_ids: list[str] = Field(default_factory=list)
 
 
 class DeletionRequestConfirmation(BaseModel):

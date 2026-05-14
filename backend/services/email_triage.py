@@ -311,10 +311,12 @@ class EmailTriageService:
             }
 
         deleted_count = self.client.delete_messages(request.message_ids)
-        self.store.pop(request_id)
-        return {
-            "request_id": request_id,
-            "status": "deleted",
-            "deleted_count": deleted_count,
-            "message_ids": request.message_ids,
-        }
+        try:
+            return {
+                "request_id": request_id,
+                "status": "deleted",
+                "deleted_count": deleted_count,
+                "message_ids": request.message_ids,
+            }
+        finally:
+            self.store.pop(request_id)
