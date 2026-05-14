@@ -9,6 +9,7 @@ from typing import Iterable, List, Optional
 
 
 def _split_comma_separated(value: str) -> tuple[str, ...]:
+    """Parse a comma-separated config value into normalized lowercase tokens."""
     return tuple(item.strip().lower() for item in value.split(",") if item.strip())
 
 
@@ -206,6 +207,7 @@ def score_message(message: EmailMessageSummary, config: EmailConfig) -> Optional
     sender_value = message.sender.lower()
     subject_value = message.subject.lower()
     sender_address = parseaddr(message.sender)[1].lower()
+    normalized_sender = " ".join(part for part in (sender_value, sender_address) if part)
 
     reasons: List[str] = []
     score = 0
@@ -214,7 +216,7 @@ def score_message(message: EmailMessageSummary, config: EmailConfig) -> Optional
         reasons.append("subject matches a low-priority keyword")
         score += 2
 
-    if any(keyword in sender_value or keyword in sender_address for keyword in config.sender_keywords):
+    if any(keyword in normalized_sender for keyword in config.sender_keywords):
         reasons.append("sender matches a low-priority keyword")
         score += 2
 

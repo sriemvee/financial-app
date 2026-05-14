@@ -60,7 +60,6 @@ async def get_email_triage_status():
         "configured": True,
         "imap_host": config.imap_host,
         "imap_port": config.imap_port,
-        "username": config.username,
         "folder": config.folder,
         "older_than_days": config.older_than_days,
         "confirmation_window_minutes": config.confirmation_window_minutes,

@@ -1,4 +1,4 @@
-# Email Triage Agent MVP
+# Email Triage MVP
 
 Lightweight FastAPI scaffold for connecting to an email inbox over IMAP, identifying likely irrelevant emails, and requiring explicit confirmation before any deletion happens.
 
