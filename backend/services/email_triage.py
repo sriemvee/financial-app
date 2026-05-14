@@ -8,7 +8,7 @@ from email.utils import parseaddr, parsedate_to_datetime
 from typing import Iterable, List, Optional
 
 
-def _split_csv(value: str) -> tuple[str, ...]:
+def _split_comma_separated(value: str) -> tuple[str, ...]:
     return tuple(item.strip().lower() for item in value.split(",") if item.strip())
 
 
@@ -62,13 +62,13 @@ class EmailConfig:
             password=env["EMAIL_PASSWORD"],
             folder=env.get("EMAIL_FOLDER", "INBOX").strip() or "INBOX",
             use_ssl=_parse_bool(env.get("EMAIL_USE_SSL", "true")),
-            subject_keywords=_split_csv(
+            subject_keywords=_split_comma_separated(
                 env.get(
                     "TRIAGE_SUBJECT_KEYWORDS",
                     "newsletter,promotion,sale,discount,unsubscribe",
                 )
             ),
-            sender_keywords=_split_csv(
+            sender_keywords=_split_comma_separated(
                 env.get(
                     "TRIAGE_SENDER_KEYWORDS",
                     "no-reply,noreply,notifications,marketing,mailer-daemon",
@@ -311,12 +311,11 @@ class EmailTriageService:
             }
 
         deleted_count = self.client.delete_messages(request.message_ids)
-        try:
-            return {
-                "request_id": request_id,
-                "status": "deleted",
-                "deleted_count": deleted_count,
-                "message_ids": request.message_ids,
-            }
-        finally:
-            self.store.pop(request_id)
+        result = {
+            "request_id": request_id,
+            "status": "deleted",
+            "deleted_count": deleted_count,
+            "message_ids": request.message_ids,
+        }
+        self.store.pop(request_id)
+        return result
