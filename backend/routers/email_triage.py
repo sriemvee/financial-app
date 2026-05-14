@@ -62,7 +62,7 @@ async def get_irrelevant_email_candidates(limit: int = 25):
     try:
         return {"candidates": service.list_irrelevant_candidates(limit=limit)}
     except (imaplib.IMAP4.error, OSError) as exc:
-        raise HTTPException(status_code=502, detail=f"Unable to read mailbox: {exc}") from exc
+        raise HTTPException(status_code=502, detail="Unable to read mailbox.") from exc
 
 
 @router.post("/deletion-requests")
@@ -89,4 +89,4 @@ async def confirm_deletion_request(request_id: str, payload: DeletionRequestConf
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except (imaplib.IMAP4.error, OSError) as exc:
-        raise HTTPException(status_code=502, detail=f"Unable to update mailbox: {exc}") from exc
+        raise HTTPException(status_code=502, detail="Unable to update mailbox.") from exc

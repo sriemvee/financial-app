@@ -157,17 +157,28 @@ class ImapEmailClient:
 
     def delete_messages(self, message_ids: Iterable[str]) -> int:
         mailbox = self._connect()
+        flagged_for_deletion: List[str] = []
         try:
-            deleted = 0
             for message_id in message_ids:
                 status, _ = mailbox.uid(
                     "STORE", message_id.encode("utf-8"), "+FLAGS", "(\\Deleted)"
                 )
-                if status == "OK":
-                    deleted += 1
-            if deleted:
+                if status != "OK":
+                    raise imaplib.IMAP4.error("Unable to flag one or more messages for deletion.")
+                flagged_for_deletion.append(message_id)
+
+            if flagged_for_deletion:
                 mailbox.expunge()
-            return deleted
+            return len(flagged_for_deletion)
+        except Exception:
+            for message_id in flagged_for_deletion:
+                try:
+                    mailbox.uid(
+                        "STORE", message_id.encode("utf-8"), "-FLAGS", "(\\Deleted)"
+                    )
+                except imaplib.IMAP4.error:
+                    pass
+            raise
         finally:
             try:
                 mailbox.close()

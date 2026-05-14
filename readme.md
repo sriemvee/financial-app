@@ -22,7 +22,7 @@ If confirmation is rejected or the request expires, no emails are deleted.
 
 ## Configuration
 
-Copy `/home/runner/work/financial-app/financial-app/backend/.env.example` to `backend/.env` for local development, or export the same variables in your shell.
+Copy `backend/.env.example` to `backend/.env` for local development, or export the same variables in your shell.
 
 ```env
 EMAIL_IMAP_HOST=imap.gmail.com
@@ -42,7 +42,7 @@ DELETE_CONFIRMATION_WINDOW_MINUTES=15
 ### Backend
 
 ```bash
-cd /home/runner/work/financial-app/financial-app/backend
+cd backend
 pip install fastapi uvicorn python-dotenv
 uvicorn main:app --reload
 ```
@@ -52,7 +52,7 @@ uvicorn main:app --reload
 The existing frontend remains in the repo, but the email triage MVP is currently backend-first.
 
 ```bash
-cd /home/runner/work/financial-app/financial-app/frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -85,7 +85,6 @@ curl -X POST http://localhost:8000/email-triage/deletion-requests/<request_id>/c
 Run the basic backend tests with:
 
 ```bash
-cd /home/runner/work/financial-app/financial-app
 python -m unittest discover -s backend/tests -p "test_*.py"
 ```
 
